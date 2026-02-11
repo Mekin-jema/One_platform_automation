@@ -19,7 +19,9 @@
   "pw:internal:create": "npx playwright test tests/users/internal/create.spec.ts",
   "pw:internal:edit": "npx playwright test tests/users/internal/edit.spec.ts",
   "pw:external:create": "npx playwright test tests/users/external/create.spec.ts",
-  "pw:external:edit": "npx playwright test tests/users/external/edit.spec.ts"
+  "pw:external:edit": "npx playwright test tests/users/external/edit.spec.ts",
+  "pw:hierarchy:create": "npx playwright test tests/hierarchy_and_permission/create_hierarchy.spec.ts",
+  "pw:permission:create": "npx playwright test tests/hierarchy_and_permission/create_permission.spec.ts"
 
 
 }

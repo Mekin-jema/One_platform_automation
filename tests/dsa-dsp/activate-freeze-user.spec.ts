@@ -40,7 +40,7 @@ test(('update freeze status'),async({page})=>{
     await page.getByRole('button', { name: 'Freeze Application' }).click();
     await expect(page.getByRole('listitem')).toBeVisible();
 
-    await expect(page.getByRole('listitem')).toBeVisible();
+    // await expect(page.getByRole('listitem')).toBeVisible();
     // unfreeze the user
 
 })
