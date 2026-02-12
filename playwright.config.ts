@@ -14,9 +14,8 @@ export default defineConfig({
 
   // Show detailed test output
   reporter: [
-    // ['html', { open: 'never' }],
-    ["allure-playwright",{open:"always"}],
-    // ['list']
+    ["allure-playwright"],
+    ["junit", { outputFile: "test-results/junit.xml" }],
   ],
 
   use: {
@@ -24,8 +23,8 @@ export default defineConfig({
     // baseURL:"https://one-platform-um-fe.oat.sma2.safaricomet.net",
      baseURL: 'https://www.saucedemo.com/',
 
-    // Run with UI visible
-    headless: false,
+    // Run headless in CI
+    headless: !!process.env.CI,
   
 
     // Slow down each action (very useful)

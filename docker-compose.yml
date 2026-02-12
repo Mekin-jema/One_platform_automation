@@ -5,6 +5,7 @@ services:
     build: ./jenkins
     container_name: jenkins
     restart: unless-stopped
+    user: root
     ports:
       - "8080:8080"     # Jenkins web UI
       - "50000:50000"   # Jenkins agent port
