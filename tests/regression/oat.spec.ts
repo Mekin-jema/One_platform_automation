@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/allure-test';
+import { test, expect } from '../../utils/fixtures/allure-test';
 import {
   addDescription,
   assertSessionActive,

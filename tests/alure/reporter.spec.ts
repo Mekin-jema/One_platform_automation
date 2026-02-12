@@ -1,4 +1,4 @@
-import { test, expect } from "../fixtures/allure-test";
+import { test, expect } from "../../utils/fixtures/allure-test";
 import * as allure from "allure-js-commons";
 
 test.describe("Alure Reporter", () => {

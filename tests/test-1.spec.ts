@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/allure-test';
+import { test, expect } from '../utils/fixtures/allure-test';
 
 test('test', async ({ page }) => {
   await page.goto('https://one-platform-um-fe.oat.sma2.safaricomet.net/merchant-onboarding/merchantReport');
