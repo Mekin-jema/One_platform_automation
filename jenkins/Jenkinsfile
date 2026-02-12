@@ -1,14 +1,21 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     environment {
         DOCKER_IMAGE = 'playwright-tests'
+        LOCAL_REPO = '/var/jenkins_home/local_repo'
     }
 
     stages {
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                dir("${LOCAL_REPO}") {
+                    sh 'docker build -t $DOCKER_IMAGE .'
+                }
             }
         }
 
