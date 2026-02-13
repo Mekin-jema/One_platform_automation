@@ -5,8 +5,15 @@ pipeline {
         NODE_ENV = 'ci'
     }
 
+    triggers {
+        githubPush()
+    }
+
     stages {
         stage('Install Dependencies') {
+            when {
+                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+            }
             steps {
                 sh 'npm ci'
                 sh 'npx playwright install'
@@ -14,6 +21,9 @@ pipeline {
         }
 
         stage('Run Playwright Tests') {
+            when {
+                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+            }
             steps {
                 sh '''
                     mkdir -p allure-results test-results
@@ -23,6 +33,9 @@ pipeline {
         }
 
         stage('Publish Allure Report') {
+            when {
+                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+            }
             steps {
                 allure(
                     includeProperties: false,
