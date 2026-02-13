@@ -113,3 +113,4 @@ Key defaults live in [playwright.config.ts](playwright.config.ts). You can overr
 ## License
 
 ISC (see [package.json](package.json)).
+2026
