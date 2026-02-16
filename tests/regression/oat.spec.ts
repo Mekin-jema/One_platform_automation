@@ -127,11 +127,11 @@ test.describe('Partner Management flows', () => {
 });
 
 
-    test.skip('Acquirer Management card opens destination', async ({ page }, testInfo) => {
+    test('Acquirer Management card opens destination', async ({ page }, testInfo) => {
       addDescription(testInfo, 'Dashboard card must land on Acquirer Management so acquirer configs remain manageable.');
     });
 
-    test.describe.skip('Float Management flows', () => {
+    test.describe('Float Management flows', () => {
       test('Float Management endpoint /float-management// loads', async ({ page }, testInfo) => {
         const url = '/float-management//';
         addDescription(testInfo, `Navigating to ${url} and verifying Float Management page loads.`);
@@ -193,7 +193,7 @@ test.describe('Partner Management flows', () => {
       });
     });
 
-    test.skip('UBP Backoffice card opens destination', async ({ page }, testInfo) => {
+    test('UBP Backoffice card opens destination', async ({ page }, testInfo) => {
       addDescription(testInfo, 'Dashboard card must open UBP Backoffice so banking back-office flows stay reachable.');
     });
 
@@ -319,7 +319,7 @@ test.describe('Partner Management flows', () => {
       });
     });
 
-    test.describe.skip('EVD flows', () => {
+    test.describe('EVD flows', () => {
       test('EVD endpoint /evd/dashboard loads', async ({ page }, testInfo) => {
         const path = '/evd/dashboard';
         addDescription(testInfo, `Navigating to ${path} and verifying EVD page loads.`);
@@ -376,7 +376,7 @@ test.describe('Partner Management flows', () => {
     await assertSessionActive(page);
   });
 
-  test.skip('EVD Configurations Tab', async ({ page }, testInfo) => {
+  test('EVD Configurations Tab', async ({ page }, testInfo) => {
     addDescription(testInfo, 'Direct navigation to EVD configuration should respect env override and load successfully.');
     const evdUrl = process.env.EVD_URL || '/evdConfiguration';
     await gotoWithRetry(page, evdUrl);

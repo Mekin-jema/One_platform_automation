@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "pw:login": "npx playwright test tests/auth/global-login.setup.spec.ts",
+    "pw:login": "npx playwright test utils/auth/global-login.setup.spec.ts",
     "pw:login:force": "cross-env FORCE_LOGIN=true npx playwright test tests/auth/global-login.setup.spec.ts",
     "pw:dashboard": "npx playwright test tests/dashboard/dashboard-smoke.spec.ts",
     "pw:smoke:oat": "npx playwright test tests/regression/oat.spec.ts",

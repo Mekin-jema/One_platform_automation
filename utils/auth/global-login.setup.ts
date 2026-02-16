@@ -2,9 +2,8 @@ import { chromium, type FullConfig } from '@playwright/test';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import { LoginPage } from '../../pages/LoginPage';
-import { OtpVerifyPage } from '../../pages/OtpVerifyPage';
 import { DashboardPage } from '../../pages/DashboardPage';
-import { ImapOtpReader } from '../otp-reader';
+
 
 dotenv.config();
 

@@ -1,6 +1,5 @@
 
-import { test, expect } from '@playwright/test';
-
+import { test} from "../../utils/fixtures/allure-test";
 test.use({ storageState: 'storageState.json' });
 
 test.describe('Create Permission', () => {

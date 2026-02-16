@@ -1,5 +1,6 @@
-import { test, expect } from '@playwright/test';
+
 import type { Page } from '@playwright/test';
+import { test,expect } from '../../utils/fixtures/allure-test';
 
 test.use({ storageState: 'storageState.json' });
 
@@ -10,14 +11,11 @@ test.describe('Safaricom Partner Hub - Merchant Onboarding', () => {
       .locator('..')
       .locator('.ant-select');
 
-  const onboardingSelectTrigger = (page: Page) =>
-    onboardingSelect(page).locator('.ant-select-selector');
+
 
   const onboardingSearchInput = (page: Page) =>
     onboardingSelect(page).locator('input[role="combobox"]');
 
-  const onboardingSelectionValue = (page: Page) =>
-    onboardingSelect(page).locator('.ant-select-selection-item');
 
   const onboardingDropdown = (page: Page) =>
     page.locator('.ant-select-dropdown');

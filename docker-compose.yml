@@ -13,3 +13,6 @@ services:
     environment:
       JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
       PLAYWRIGHT_BROWSERS_PATH: /var/jenkins_home/ms-playwright
+
+volumes:
+  jenkins_home:

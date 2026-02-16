@@ -1,7 +1,7 @@
 import { test, expect } from '../../utils/fixtures/allure-test';
 test.use({ storageState: 'storageState.json' });
 // update location for a user
-test.skip('test', async ({ page }) => {
+test('test', async ({ page }) => {
   await page.goto("/merchant-onboarding/merchantReport");
   await page.getByText('DSA-DSP').click();
   await page.getByRole('textbox', { name: 'UserName' }).click();

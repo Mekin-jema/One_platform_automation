@@ -1,5 +1,5 @@
+import { test } from "../../utils/fixtures/allure-test";
 
-import { test, expect } from '@playwright/test';
 
 test.use({ storageState: 'storageState.json' });
 
