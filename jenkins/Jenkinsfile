@@ -1,18 +1,12 @@
 pipeline {
-    agent any  // Runs on master node; no dedicated Docker agent needed
+    agent any
 
     parameters {
-        string(
-            name: 'TEST_PATH',
-            defaultValue: '',
-            description: 'Optional: test file or folder, e.g. tests/login.spec.ts'
-        )
+        string(name: 'TEST_PATH', defaultValue: '', description: 'Optional: test file or folder, e.g. tests/login.spec.ts')
     }
 
     environment {
         NODE_ENV = 'ci'
-        NPM_REGISTRY = 'http://10.3.174.163:9090'   // internal npm registry
-        PLAYWRIGHT_IMAGE = 'mcr.microsoft.com/playwright:v1.42.0-jammy'
     }
 
     triggers {
@@ -20,63 +14,45 @@ pipeline {
     }
 
     stages {
-
-        stage('Verify Docker & Node') {
+        stage('Install Dependencies') {
+            when {
+                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+            }
             steps {
-                sh '''
-                    echo "Checking Docker version..."
-                    docker --version || echo "Docker not installed"
-                    
-                    echo "Pulling Playwright Docker image..."
-                    docker pull $PLAYWRIGHT_IMAGE
-
-                    echo "Workspace path: $WORKSPACE"
-                '''
+                sh 'npm ci'
+                sh 'npx playwright install'
             }
         }
 
-        stage('Install Dependencies & Run Tests') {
+        stage('Run Playwright Tests') {
             when {
-                branch 'master'
+                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
             }
             steps {
                 sh '''
                     mkdir -p allure-results test-results
-
-                    # Run inside Playwright Docker container
-                    docker run --rm \
-                        -v $WORKSPACE:$WORKSPACE \
-                        -w $WORKSPACE \
-                        --ipc=host \
-                        $PLAYWRIGHT_IMAGE /bin/bash -c "
-                            echo Installing dependencies from internal registry: $NPM_REGISTRY &&
-                            npm ci --registry $NPM_REGISTRY &&
-                            npx playwright install --with-deps --registry $NPM_REGISTRY &&
-                            if [ -n '$TEST_PATH' ]; then
-                                npx playwright test $TEST_PATH --reporter=list,junit --output=test-results
-                            else
-                                npx playwright test --reporter=list,junit --output=test-results
-                            fi
-                        "
+                                        if [ -n "$TEST_PATH" ]; then
+                                            npx playwright test "$TEST_PATH"
+                                        else
+                                            npx playwright test
+                                        fi
                 '''
             }
         }
 
         stage('Publish Allure Report') {
             when {
-                branch 'master'
+                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
             }
             steps {
-                sh '''
-                    npx allure generate ./allure-results -o ./allure-report --clean || true
-                '''
+                sh 'npx allure generate ./allure-results -o ./allure-report --clean || true'
             }
         }
     }
 
     post {
         always {
-            junit allowEmptyResults: true, testResults: 'test-results/**/*.xml'
+            junit allowEmptyResults: true, testResults: 'test-results/junit.xml'
             archiveArtifacts artifacts: 'allure-results/**,allure-report/**', allowEmptyArchive: true
         }
     }
