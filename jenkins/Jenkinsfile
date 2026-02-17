@@ -9,7 +9,9 @@ pipeline {
             NODE_ENV = 'ci'
         }
 
-     
+        triggers {
+            pollSCM('H/5 * * * *')
+        }
 
     stages {
         stage('Install Dependencies') {
