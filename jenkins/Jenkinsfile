@@ -1,12 +1,23 @@
 pipeline {
-    agent any
+    // Use official Playwright Docker image (includes Node, npm, browsers)
+    agent {
+        docker {
+            image 'mcr.microsoft.com/playwright:v1.42.0-jammy'
+            args '--ipc=host'
+        }
+    }
 
     parameters {
-        string(name: 'TEST_PATH', defaultValue: '', description: 'Optional: test file or folder, e.g. tests/login.spec.ts')
+        string(
+            name: 'TEST_PATH', 
+            defaultValue: '', 
+            description: 'Optional: test file or folder, e.g. tests/login.spec.ts'
+        )
     }
 
     environment {
         NODE_ENV = 'ci'
+        NPM_REGISTRY = 'http://10.3.174.163:9090'   // internal npm registry
     }
 
     triggers {
@@ -14,45 +25,62 @@ pipeline {
     }
 
     stages {
+        stage('Verify Node') {
+            steps {
+                sh '''
+                  echo "Node version:"
+                  node -v
+                  echo "NPM version:"
+                  npm -v
+                '''
+            }
+        }
+
         stage('Install Dependencies') {
             when {
-                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+                branch 'master'
             }
             steps {
-                sh 'npm ci'
-                sh 'npx playwright install'
+                sh '''
+                  echo "Installing dependencies from internal registry: $NPM_REGISTRY"
+                  npm ci --registry $NPM_REGISTRY
+                  npx playwright install --with-deps --registry $NPM_REGISTRY
+                '''
             }
         }
 
         stage('Run Playwright Tests') {
             when {
-                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+                branch 'master'
             }
             steps {
                 sh '''
-                    mkdir -p allure-results test-results
-                                        if [ -n "$TEST_PATH" ]; then
-                                            npx playwright test "$TEST_PATH"
-                                        else
-                                            npx playwright test
-                                        fi
+                  mkdir -p allure-results test-results
+
+                  if [ -n "$TEST_PATH" ]; then
+                      npx playwright test "$TEST_PATH" --registry $NPM_REGISTRY
+                  else
+                      npx playwright test --registry $NPM_REGISTRY
+                  fi
                 '''
             }
         }
 
         stage('Publish Allure Report') {
             when {
-                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+                branch 'master'
             }
             steps {
-                sh 'npx allure generate ./allure-results -o ./allure-report --clean || true'
+                sh '''
+                  npx allure generate ./allure-results -o ./allure-report --clean || true
+                '''
             }
         }
     }
 
     post {
         always {
-            junit allowEmptyResults: true, testResults: 'test-results/junit.xml'
+            junit allowEmptyResults: true, testResults: 'test-results/**/*.xml'
             archiveArtifacts artifacts: 'allure-results/**,allure-report/**', allowEmptyArchive: true
         }
     }
