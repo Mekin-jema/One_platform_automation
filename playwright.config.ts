@@ -10,7 +10,7 @@ export default defineConfig({
 
   // Increase timeout for debugging
   timeout: 4 * 60 * 1000,
-  workers:4,
+  workers:4, // No retries for now, can be increased if needed
   
 
   // Show detailed test output
@@ -26,7 +26,7 @@ export default defineConfig({
     //  baseURL: 'https://www.saucedemo.com/',
 
     // Run headless in CI
-    headless: !!process.env.CI,
+    headless: false,
   
 
     // Slow down each action (very useful)

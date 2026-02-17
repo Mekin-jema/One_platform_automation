@@ -1,9 +1,29 @@
 import { test, expect } from "../../../utils/fixtures/allure-test";
 
+
 test.use({ storageState: 'storageState.json' });
 
+
 test.describe('Create user',()=>{
-    test('create user',async({page})=>{
+   test('create user',async({page})=>{
+const selectComboboxOption = async (comboIndex: number, optionName: string) => {
+   const combo = page.getByRole('combobox').nth(comboIndex);
+   await combo.scrollIntoViewIfNeeded();
+   await combo.click();
+   const option = page.getByRole('option', { name: optionName, exact: true });
+   await expect(option).toBeVisible({ timeout: 10000 });
+   await option.click();
+};
+
+
+const selectLocationDetails = async (startIndex: number) => {
+   await selectComboboxOption(startIndex, 'Afar');
+   await selectComboboxOption(startIndex + 1, 'Semera');
+   await selectComboboxOption(startIndex + 2, 'Semera');
+   await selectComboboxOption(startIndex + 3, '201060-Logia');
+};
+
+
 await page.goto('/dashboard/users')
 await page.getByRole('link', { name: 'Users' }).click();
 await expect(page.getByRole('tab', { name: 'Internal' })).toBeVisible();
@@ -15,51 +35,40 @@ await page.getByRole('combobox', { name: 'Gender' }).click();
 await page.getByRole('option', { name: 'Male', exact: true }).click();
 await page.locator('input[name="email"]').fill('mekinjemal9@gmail.com');
 
+
 await page.locator('input[name="contactPhone"]').fill('0709154663');
 // Location Detail
 
-// Alternate Location Detail
-await page.getByRole('combobox').nth(2).click();
-await page.getByRole('option', { name: 'Afar' }).click();
-await page.getByRole('combobox').nth(3).click();
-await page.getByRole('option', { name: 'Semera' }).click();
-await page.getByRole('combobox').nth(4).click();
-await page.getByRole('option',{name:"Semera"}).click();
 
-await page.getByRole('combobox').nth(5).click();
-await page.getByRole('option', { name: '201060-Logia' }).click();
+// Alternate Location Detail
+await selectLocationDetails(2);
 
 
 // Alternate Location Detail
-await page.getByRole('combobox').nth(6).click();
-await page.getByRole('option', { name: 'Afar' }).click();
-await page.getByRole('combobox').nth(7).click();
-await page.getByRole('option', { name: 'Semera' }).click();
-await page.getByRole('combobox').nth(8).click();
-await page.getByRole('option',{name:"Semera"}).click();
+await selectLocationDetails(6);
 
-await page.getByRole('combobox').nth(9).click();
-await page.getByRole('option', { name: '201060-Logia' }).click();
 
-// Open the dropdown
-const combobox = page.getByPlaceholder('Select hierarchy');
-await combobox.click();
 
-// Type to filter / trigger options
-// await combobox.fill('TDR');
+const hierarchyInput = page.locator('input[placeholder="Select hierarchy"][role="combobox"]');
+await hierarchyInput.click();
+await hierarchyInput.fill('Onboarding Specialist');
+await page.getByRole('option', { name: 'Onboarding Specialist', exact: true }).click();
 
-// Wait for the option to appear
-await page.getByRole('option', { name: 'Student' }).click();
-// await expect(tdrOption).toBeVisible({ timeout: 5000 });
+
+
+
+
 
 
 
 
 // Continue
 await page.getByRole('button', { name: 'Choose File' })
-    .setInputFiles('C:/Users/Mekin.Jemal/OneDrive - Safaricom Ethiopia/Desktop/regression-test-main/public/logo.jpg');
+   .setInputFiles('C:/Users/Mekin.Jemal/OneDrive - Safaricom Ethiopia/Desktop/regression-test-main/public/logo.jpg');
+
 
 await page.getByRole('button', { name: 'Save' }).click();
+
 
 // upload file
 
@@ -68,9 +77,21 @@ await page.getByRole('button', { name: 'Save' }).click();
 
 
 
-    
+
+
+
+
+
+
+  
 })
 })
+
+
+
+
+
+
 
 
 
