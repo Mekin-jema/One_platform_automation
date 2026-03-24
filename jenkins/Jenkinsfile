@@ -1,22 +1,41 @@
 pipeline {
     agent any
 
-        parameters {
-            string(name: 'TEST_PATH', defaultValue: '', description: 'Optional: test file or folder, e.g. tests/login.spec.ts')
-        }
+    options {
+        timestamps()
+        ansiColor('xterm')
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '15'))
+    }
 
-        environment {
-            NODE_ENV = 'ci'
-        }
+    parameters {
+        choice(
+            name: 'TEST_SCOPE',
+            choices: ['interactive-dropdown', 'all', 'path', 'grep'],
+            description: 'How to choose tests to run'
+        )
+        string(name: 'TEST_PATH', defaultValue: '', description: 'Used when TEST_SCOPE=path (e.g. tests/login.spec.ts or tests/auth/)')
+        string(name: 'TEST_GREP', defaultValue: '', description: 'Used when TEST_SCOPE=grep (e.g. @smoke)')
+        choice(name: 'PLAYWRIGHT_PROJECT', choices: ['all', 'chromium', 'firefox', 'webkit'], description: 'Browser/project to run')
+        choice(name: 'WORKERS', choices: ['default', '1', '2', '4'], description: 'Parallel workers for Playwright')
+        booleanParam(name: 'UPDATE_SNAPSHOTS', defaultValue: false, description: 'Run with -u to update snapshots')
+        booleanParam(name: 'FORCE_RUN', defaultValue: false, description: 'Allow run even when branch is not master')
+    }
 
-        triggers {
-            pollSCM('H/5 * * * *')
-        }
+    environment {
+        NODE_ENV = 'ci'
+        SELECTED_TEST_PATH = ''
+        PW_TEST_COMMAND = 'npx playwright test'
+    }
+
+    triggers {
+        pollSCM('H/5 * * * *')
+    }
 
     stages {
         stage('Install Dependencies') {
             when {
-                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+                expression { params.FORCE_RUN || env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
             }
             steps {
                 sh 'npm ci'
@@ -24,25 +43,111 @@ pipeline {
             }
         }
 
+        stage('Select Test (Dropdown UI)') {
+            when {
+                allOf {
+                    expression { params.FORCE_RUN || env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+                    expression { params.TEST_SCOPE == 'interactive-dropdown' }
+                }
+            }
+            steps {
+                script {
+                    def discoveredTargets = sh(
+                        script: "(echo all && find tests -mindepth 1 -type d | sort | sed 's#^#- #' && find tests -type f \\\( -name '*.spec.ts' -o -name '*.test.ts' \\\) | sort | sed 's#^#-- #')",
+                        returnStdout: true
+                    ).trim()
+
+                    if (!discoveredTargets) {
+                        error('No test targets found under tests/.')
+                    }
+
+                    env.SELECTED_TEST_PATH = input(
+                        message: 'Select a test target to run (all, folder, or file)\n- folder\n-- file',
+                        ok: 'Run selected target',
+                        parameters: [
+                            choice(
+                                name: 'TEST_TARGET',
+                                choices: discoveredTargets,
+                                description: 'Auto-discovered from tests/ directory in friendly list format'
+                            )
+                        ]
+                    ) as String
+                }
+            }
+        }
+
+        stage('Prepare Test Command') {
+            when {
+                expression { params.FORCE_RUN || env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+            }
+            steps {
+                script {
+                    def shellQuote = { value ->
+                        return "'${value.replace("'", "'\"'\"'")}'"
+                    }
+
+                    def cmd = 'npx playwright test'
+                    def pathValue = params.TEST_PATH?.trim()
+                    def grepValue = params.TEST_GREP?.trim()
+
+                    if (params.TEST_SCOPE == 'path') {
+                        if (!pathValue) {
+                            error('TEST_SCOPE=path requires TEST_PATH to be provided.')
+                        }
+                        cmd += " ${shellQuote(pathValue)}"
+                    } else if (params.TEST_SCOPE == 'grep') {
+                        if (!grepValue) {
+                            error('TEST_SCOPE=grep requires TEST_GREP to be provided.')
+                        }
+                        cmd += " --grep ${shellQuote(grepValue)}"
+                    } else if (params.TEST_SCOPE == 'interactive-dropdown') {
+                        if (!env.SELECTED_TEST_PATH?.trim()) {
+                            error('No test selected from dropdown.')
+                        }
+                        def selectedTarget = env.SELECTED_TEST_PATH.trim()
+                        if (selectedTarget != 'all') {
+                            selectedTarget = selectedTarget
+                                .replaceFirst(/^--\s+/, '')
+                                .replaceFirst(/^-\s+/, '')
+                            cmd += " ${shellQuote(selectedTarget)}"
+                        }
+                    }
+
+                    if (params.PLAYWRIGHT_PROJECT != 'all') {
+                        cmd += " --project ${shellQuote(params.PLAYWRIGHT_PROJECT)}"
+                    }
+
+                    if (params.WORKERS != 'default') {
+                        cmd += " --workers ${shellQuote(params.WORKERS)}"
+                    }
+
+                    if (params.UPDATE_SNAPSHOTS) {
+                        cmd += ' -u'
+                    }
+
+                    env.PW_TEST_COMMAND = cmd
+                    currentBuild.displayName = "#${env.BUILD_NUMBER} ${params.TEST_SCOPE}"
+                    currentBuild.description = "project=${params.PLAYWRIGHT_PROJECT}, workers=${params.WORKERS}"
+                }
+            }
+        }
+
         stage('Run Playwright Tests') {
             when {
-                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+                expression { params.FORCE_RUN || env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
             }
             steps {
                 sh '''
                     mkdir -p allure-results test-results
-                                        if [ -n "$TEST_PATH" ]; then
-                                            npx playwright test "$TEST_PATH"
-                                        else
-                                            npx playwright test
-                                        fi
+                    echo "Running: $PW_TEST_COMMAND"
+                    eval "$PW_TEST_COMMAND"
                 '''
             }
         }
 
         stage('Publish Allure Report') {
             when {
-                expression { env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
+                expression { params.FORCE_RUN || env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master' }
             }
             steps {
                 sh 'npx allure generate ./allure-results -o ./allure-report --clean || true'
