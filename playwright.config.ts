@@ -30,7 +30,7 @@ retries:1,
 
   use: {
     // Base URL for all tests
-    baseURL: 'https://one-platform-um-fe.oat.sma2.safaricomet.net',
+    baseURL: 'your website url',
  
   permissions: ['geolocation'],
   geolocation: { latitude: 8.9806, longitude: 38.7578 }, // example coords
