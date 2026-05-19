@@ -1,4 +1,4 @@
-# One Platform Automation (Playwright)
+
 
 End-to-end UI automation suite powered by Playwright with Allure reporting and optional Jenkins container setup.
 
